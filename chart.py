@@ -103,8 +103,12 @@ def main():
     sns.set_context("talk")  # presentation-ready text sizes
 
     # --- Create 512x512 canvas ---
-    # 8 inches * 64 dpi = 512 pixels
-    plt.figure(figsize=(8, 8))
+    # Create the figure with an explicit DPI so the canvas is exactly
+    # 8 inches * 64 dpi = 512 pixels. We'll create the figure with
+    # `dpi=64` and `figsize=(8, 8)` and save using the figure's DPI
+    # without using `bbox_inches='tight'` (which can crop and change
+    # the final pixel dimensions).
+    fig, ax = plt.subplots(figsize=(8, 8), dpi=64)
 
     # Mask upper triangle for cleaner presentation
     mask = np.triu(np.ones_like(corr, dtype=bool))
@@ -123,10 +127,11 @@ def main():
             "shrink": 0.8,
             "label": "Pearson Correlation",
         },
+        ax=ax,
     )
 
     # Titles & labels tuned for an executive audience
-    plt.title(
+    ax.set_title(
         "Customer Engagement Metric Correlation Matrix",
         pad=20,
         fontsize=18,
@@ -135,11 +140,11 @@ def main():
     ax.set_xticklabels(ax.get_xticklabels(), rotation=45, ha="right")
     ax.set_yticklabels(ax.get_yticklabels(), rotation=0)
 
-    plt.tight_layout()
-
-    # --- Export as 512x512 PNG ---
-    plt.savefig("chart.png", dpi=64, bbox_inches="tight")
-    plt.close()
+    # Do not call `plt.tight_layout()` or save with `bbox_inches='tight'`.
+    # Those can change the final pixel dimensions by trimming whitespace.
+    # Instead save using the figure's DPI so `figsize * dpi` yields exact pixels.
+    fig.savefig("chart.png", dpi=fig.dpi)
+    plt.close(fig)
 
 
 if __name__ == "__main__":
